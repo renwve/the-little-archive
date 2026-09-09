@@ -1,0 +1,553 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f6f4ef;
+  color: #25221f;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ============================================================
+   GENERAL
+   ============================================================ */
+
+.shell {
+  min-height: 100vh;
+}
+
+/* ============================================================
+   AUTH PAGE
+   ============================================================ */
+
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: min(460px, 100%);
+  background: white;
+  border: 1px solid #ddd7cd;
+  border-radius: 18px;
+  padding: 32px;
+  box-shadow: 0 12px 40px rgba(40, 35, 30, 0.08);
+}
+
+/* ============================================================
+   AUTH BRAND
+   ============================================================ */
+
+.brand {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   AUTH CONTAINER
+   ============================================================ */
+
+.auth-container {
+  width: 100%;
+  margin-top: 28px;
+}
+
+.auth-container h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.auth-container > .muted {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
+/* ============================================================
+   MUTED TEXT
+   ============================================================ */
+
+.muted {
+  color: #77716a;
+}
+
+/* ============================================================
+   FORM FIELDS
+   ============================================================ */
+
+.field {
+  display: grid;
+  gap: 7px;
+  margin: 16px 0;
+}
+
+.field label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.field input,
+.field textarea,
+.field select,
+.search-input {
+  width: 100%;
+  border: 1px solid #cfc8bd;
+  background: #fff;
+  border-radius: 10px;
+  padding: 11px 12px;
+  outline: none;
+  color: #25221f;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #aaa39b;
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus,
+.search-input:focus {
+  border-color: #7b6f62;
+  box-shadow: 0 0 0 3px rgba(123, 111, 98, 0.12);
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+.btn {
+  border: 1px solid #3d3833;
+  border-radius: 10px;
+  padding: 11px 15px;
+  background: #3d3833;
+  color: white;
+}
+
+.btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.btn.secondary {
+  background: white;
+  color: #3d3833;
+  border-color: #cfc8bd;
+}
+
+.btn.danger {
+  background: #9a3f3f;
+  border-color: #9a3f3f;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   LOGIN / REGISTER SWITCH
+   ============================================================ */
+
+.auth-switch {
+  text-align: center;
+  margin-top: 22px;
+  font-size: 14px;
+}
+
+.link {
+  display: inline;
+  background: transparent;
+  border: 0;
+  color: #3d3833;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.link:hover:not(:disabled) {
+  opacity: 0.65;
+}
+
+.link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   SMALL TEXT
+   ============================================================ */
+
+.small {
+  font-size: 12px;
+}
+
+.field small {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* ============================================================
+   ERROR / SUCCESS
+   ============================================================ */
+
+.error {
+  color: #a33b3b;
+  background: #fff1f1;
+  border: 1px solid #edcaca;
+  padding: 9px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.success {
+  color: #2d6b43;
+  background: #effaf2;
+  border: 1px solid #cce8d3;
+  padding: 9px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid #ddd7cd;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.content-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(280px, 3fr);
+  gap: 20px;
+  padding: 20px;
+  max-width: 1500px;
+  width: 100%;
+  margin: auto;
+}
+
+.main-column,
+.profile-column {
+  min-width: 0;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #ddd7cd;
+  border-radius: 16px;
+  padding: 18px;
+}
+
+.hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.hero h1 {
+  margin: 0 0 5px;
+  font-size: 30px;
+}
+
+.controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 180px 180px;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.category-row {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  padding-bottom: 10px;
+}
+
+.chip {
+  white-space: nowrap;
+  border: 1px solid #d5cec4;
+  background: white;
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.chip.active {
+  background: #3d3833;
+  color: white;
+  border-color: #3d3833;
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(220px, 1fr)
+  );
+  gap: 12px;
+}
+
+.archive-card {
+  border: 1px solid #ded8ce;
+  border-radius: 14px;
+  padding: 15px;
+  background: #fcfbf8;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.archive-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.meta {
+  font-size: 13px;
+  color: #756f68;
+}
+
+.stars {
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   PROFILE
+   ============================================================ */
+
+.profile-cover {
+  height: 120px;
+  background: #e6e0d7;
+  border-radius: 12px;
+  overflow: hidden;
+  margin: -2px -2px 0;
+}
+
+.profile-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -35px;
+  padding: 0 8px;
+}
+
+.avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  background: #ddd;
+}
+
+.profile-name {
+  font-weight: 700;
+  font-size: 20px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tag {
+  background: #eee9e1;
+  border-radius: 999px;
+  padding: 5px 8px;
+  font-size: 12px;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 15, 0.48);
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  z-index: 30;
+}
+
+.modal {
+  width: min(760px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: white;
+  border-radius: 18px;
+  border: 1px solid #d8d1c7;
+  padding: 22px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* ============================================================
+   EPISODES
+   ============================================================ */
+
+.episode-list {
+  border-top: 1px solid #ddd7cd;
+  margin-top: 18px;
+  padding-top: 12px;
+}
+
+.episode-row {
+  display: grid;
+  grid-template-columns: 70px 1fr 100px;
+  gap: 8px;
+  align-items: start;
+  border-bottom: 1px solid #eee9e1;
+  padding: 10px 0;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.empty {
+  padding: 40px;
+  text-align: center;
+  color: #77716a;
+}
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 850px) {
+  .content-layout {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .main-column {
+    order: 1;
+  }
+
+  .profile-column {
+    order: 2;
+  }
+
+  .controls {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    padding: 13px 12px;
+  }
+
+  .hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 500px) {
+  .topbar-actions .secondary {
+    display: none;
+  }
+
+  .archive-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-card {
+    padding: 22px;
+  }
+
+  .auth-container h1 {
+    font-size: 25px;
+  }
+}
