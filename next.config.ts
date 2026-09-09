@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["10.0.0.227"],
+  allowedDevOrigins: ["10.187.208.252", "10.0.0.227"],
 };
 
 module.exports = nextConfig;
