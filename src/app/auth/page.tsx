@@ -18,35 +18,19 @@ export default function AuthPage() {
 
   const router = useRouter();
 
-  // ============================================================
-  // GO TO CREATE ACCOUNT
-  // ============================================================
-
   function handleCreateAccountClick() {
     setError("");
     setMessage("");
     setPassword("");
-
-    // THIS changes the page from LOGIN -> CREATE ACCOUNT
     setMode("register");
   }
-
-  // ============================================================
-  // GO BACK TO LOGIN
-  // ============================================================
 
   function handleLoginClick() {
     setError("");
     setMessage("");
     setPassword("");
-
-    // THIS changes the page from CREATE ACCOUNT -> LOGIN
     setMode("login");
   }
-
-  // ============================================================
-  // LOGIN / CREATE ACCOUNT
-  // ============================================================
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -209,42 +193,59 @@ export default function AuthPage() {
     }
   }
 
-  // ============================================================
-  // PAGE
-  // ============================================================
-
   return (
     <main className="auth-page">
-      <section className="auth-card">
+      <section className="auth-wrapper">
 
-        {/* ======================================================
-            BRAND
-        ====================================================== */}
+        {/* ====================================================
+            BRAND AREA
+        ==================================================== */}
 
-        <div className="brand">
-          the little archive
-        </div>
+        <aside className="auth-intro">
+          <h1 className="intro-title">
+            the little
+            <br />
+            <span>archive.</span>
+          </h1>
 
-        <p className="muted">
-          A personal place to keep track of everything you watch.
-        </p>
+          <p className="intro-description">
+            A personal space for everything you watch,
+            remember, and want to keep.
+          </p>
+        </aside>
 
-        {/* ======================================================
-            LOGIN
-        ====================================================== */}
+        {/* ====================================================
+            AUTH CARD
+        ==================================================== */}
 
-        {mode === "login" && (
-          <>
+        <section className="auth-card">
+
+          <div className="auth-card-top">
+            <span />
+            <span />
+            <span />
+          </div>
+
+          {/* ==================================================
+              LOGIN
+          ================================================== */}
+
+          {mode === "login" && (
             <div className="auth-container">
-              <h1>Welcome back</h1>
 
-              <p className="muted">
-                Log in to continue to your archive.
-              </p>
+              <div className="auth-heading">
+                <p className="eyebrow">
+                  WELCOME BACK
+                </p>
+
+                <h2>
+                  Pick up
+                  <br />
+                  where you left off.
+                </h2>
+              </div>
 
               <form onSubmit={submit}>
-
-                {/* EMAIL */}
 
                 <div className="field">
                   <label htmlFor="login-email">
@@ -265,8 +266,6 @@ export default function AuthPage() {
                   />
                 </div>
 
-                {/* PASSWORD */}
-
                 <div className="field">
                   <label htmlFor="login-password">
                     Password
@@ -286,73 +285,62 @@ export default function AuthPage() {
                   />
                 </div>
 
-                {/* ERROR */}
-
                 {error && (
                   <div className="error" role="alert">
                     {error}
                   </div>
                 )}
 
-                {/* LOGIN */}
-
                 <button
                   type="submit"
-                  className="btn"
+                  className="auth-submit"
                   disabled={loading}
-                  style={{
-                    width: "100%",
-                  }}
                 >
-                  {loading
-                    ? "Logging in..."
-                    : "Log in"}
+                  <span>
+                    {loading ? "Logging in..." : "Log in"}
+                  </span>
+
+                  <span className="button-arrow">
+                    →
+                  </span>
                 </button>
-
               </form>
+
+              <div className="auth-switch">
+                <span>New here?</span>
+
+                <button
+                  type="button"
+                  className="link"
+                  onClick={handleCreateAccountClick}
+                  disabled={loading}
+                >
+                  Create an account
+                </button>
+              </div>
             </div>
+          )}
 
-            {/* ==================================================
-                CREATE ACCOUNT SWITCH
-            ================================================== */}
+          {/* ==================================================
+              REGISTER
+          ================================================== */}
 
-            <div className="auth-switch">
-
-              <span>
-                New here?{" "}
-              </span>
-
-              <button
-                type="button"
-                className="link"
-                onClick={handleCreateAccountClick}
-              >
-                Create an account
-              </button>
-
-            </div>
-          </>
-        )}
-
-        {/* ======================================================
-            CREATE ACCOUNT
-        ====================================================== */}
-
-        {mode === "register" && (
-          <>
+          {mode === "register" && (
             <div className="auth-container">
 
-              <h1>
-                Create your account
-              </h1>
+              <div className="auth-heading">
+                <p className="eyebrow">
+                  NEW ACCOUNT
+                </p>
 
-              <p className="muted">
-                Start your own little archive.
-              </p>
+                <h2>
+                  Make a little
+                  <br />
+                  space for yourself.
+                </h2>
+              </div>
 
               <form onSubmit={submit}>
-
-                {/* NICKNAME */}
 
                 <div className="field">
                   <label htmlFor="register-nickname">
@@ -366,14 +354,12 @@ export default function AuthPage() {
                     onChange={(e) =>
                       setNickname(e.target.value)
                     }
-                    placeholder="What should people call you?"
+                    placeholder="What should we call you?"
                     autoComplete="nickname"
                     required
                     disabled={loading}
                   />
                 </div>
-
-                {/* USERNAME */}
 
                 <div className="field">
                   <label htmlFor="register-username">
@@ -389,20 +375,18 @@ export default function AuthPage() {
                         e.target.value.toLowerCase()
                       )
                     }
-                    placeholder="unique_username"
+                    placeholder="your_username"
                     autoComplete="username"
                     maxLength={24}
                     required
                     disabled={loading}
                   />
 
-                  <small className="muted">
-                    3–24 characters. Letters, numbers,
-                    and underscores only.
+                  <small className="field-hint">
+                    3–24 characters · letters, numbers,
+                    and underscores
                   </small>
                 </div>
-
-                {/* EMAIL */}
 
                 <div className="field">
                   <label htmlFor="register-email">
@@ -422,8 +406,6 @@ export default function AuthPage() {
                     disabled={loading}
                   />
                 </div>
-
-                {/* PASSWORD */}
 
                 <div className="field">
                   <label htmlFor="register-password">
@@ -445,15 +427,11 @@ export default function AuthPage() {
                   />
                 </div>
 
-                {/* ERROR */}
-
                 {error && (
                   <div className="error" role="alert">
                     {error}
                   </div>
                 )}
-
-                {/* SUCCESS */}
 
                 {message && (
                   <div className="success" role="status">
@@ -461,46 +439,44 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* CREATE ACCOUNT */}
-
                 <button
                   type="submit"
-                  className="btn"
+                  className="auth-submit"
                   disabled={loading}
-                  style={{
-                    width: "100%",
-                  }}
                 >
-                  {loading
-                    ? "Creating account..."
-                    : "Create account"}
+                  <span>
+                    {loading
+                      ? "Creating account..."
+                      : "Create account"}
+                  </span>
+
+                  <span className="button-arrow">
+                    →
+                  </span>
                 </button>
-
               </form>
+
+              <div className="auth-switch">
+                <span>Already have an account?</span>
+
+                <button
+                  type="button"
+                  className="link"
+                  onClick={handleLoginClick}
+                  disabled={loading}
+                >
+                  Log in
+                </button>
+              </div>
             </div>
+          )}
 
-            {/* ==================================================
-                BACK TO LOGIN
-            ================================================== */}
+          <div className="auth-card-footer">
+            <span>THE LITTLE ARCHIVE</span>
+            <span>EST. 2026</span>
+          </div>
 
-            <div className="auth-switch">
-
-              <span>
-                Already have an account?{" "}
-              </span>
-
-              <button
-                type="button"
-                className="link"
-                onClick={handleLoginClick}
-              >
-                Log in
-              </button>
-
-            </div>
-          </>
-        )}
-
+        </section>
       </section>
     </main>
   );
