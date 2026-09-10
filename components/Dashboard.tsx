@@ -57,7 +57,7 @@ type Episode = {
   created_at: string;
 };
 
-const types = ["movie", "series", "anime", "other"];
+const types = ["movie", "series", "anime", "documentary", "other"];
 
 export default function Dashboard() {
   const supabase = createClient();
@@ -815,7 +815,9 @@ function ArchiveCard({
 
   const isEpisodic =
     archive.content_type === "series" ||
-    archive.content_type === "anime";
+    archive.content_type === "anime" ||
+    archive.content_type === "documentary" ||
+    archive.content_type === "tvseries";
 
   const typeIcon =
     archive.content_type === "movie" ? (
@@ -1572,7 +1574,9 @@ function ArchiveModal({
 
   const viewingFormat =
     contentType === "series" ||
-    contentType === "anime"
+    contentType === "anime" ||
+    contentType === "documentary" ||
+    contentType === "realityshow"
       ? "episodic"
       : "standalone";
 
@@ -1830,6 +1834,10 @@ function ArchiveModal({
                       ? "Series"
                       : type === "anime"
                       ? "Anime"
+                      : type === "documentary"
+                      ? "Documentary"
+                      : type === "shortfilm"
+                      ? "Short Film"
                       : "Other"}
                   </option>
                 ))}
