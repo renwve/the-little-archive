@@ -16,8 +16,6 @@ import {
   Tv,
   Sparkles,
   UserRound,
-  ChevronDown,
-  ChevronUp,
   Layers,
 } from "lucide-react";
 
@@ -42,6 +40,7 @@ type Archive = {
   rating: number | null;
   duration_minutes: number | null;
   review_notes: string | null;
+  poster_url: string | null;
   actors: string[];
   favorite: boolean;
   created_at: string;
@@ -55,9 +54,20 @@ type Episode = {
   rating: number | null;
   notes: string | null;
   created_at: string;
+  updated_at: string | null;
 };
 
-const types = ["movie", "series", "anime", "documentary", "other"];
+const types = [
+  "movie",
+  "series",
+  "tv_special",
+  "standalone_ova",
+  "ova_series",
+  "anime",
+  "short_film",
+  "reality_show",
+  "documentary",
+];
 
 export default function Dashboard() {
   const supabase = createClient();
@@ -73,6 +83,7 @@ export default function Dashboard() {
 
   const [modal, setModal] = useState(false);
   const [profileModal, setProfileModal] = useState(false);
+  const [detailsArchive, setDetailsArchive] = useState<Archive | null>(null);
   const [editing, setEditing] = useState<Archive | null>(null);
 
   const [loading, setLoading] = useState(true);
@@ -152,32 +163,20 @@ export default function Dashboard() {
   const filtered = useMemo(() => {
     let x = [...archives];
 
-    /*
-     * IMPORTANT:
-     * Standalone / episodic are NOT browse categories.
-     * They describe the structure of an individual archive.
-     */
-
     if (category === "favorites") {
       x = x.filter((a) => a.favorite);
     }
 
     if (category === "movies") {
-      x = x.filter(
-        (a) => a.content_type === "movie"
-      );
+      x = x.filter((a) => a.content_type === "movie");
     }
 
     if (category === "series") {
-      x = x.filter(
-        (a) => a.content_type === "series"
-      );
+      x = x.filter((a) => a.content_type === "series");
     }
 
     if (category === "anime") {
-      x = x.filter(
-        (a) => a.content_type === "anime"
-      );
+      x = x.filter((a) => a.content_type === "anime");
     }
 
     if (category === "recent") {
@@ -328,9 +327,7 @@ export default function Dashboard() {
   return (
     <main className="dashboard">
 
-      {/* ======================================================
-          TOP BAR
-      ====================================================== */}
+      {/* TOP BAR */}
 
       <header className="topbar">
         <div className="archive-wordmark">
@@ -346,6 +343,7 @@ export default function Dashboard() {
               setError("");
               setModal(true);
             }}
+            type="button"
           >
             <Plus size={16} />
             <span>Add archive</span>
@@ -355,6 +353,7 @@ export default function Dashboard() {
             className="btn secondary"
             onClick={logout}
             title="Log out"
+            type="button"
           >
             <LogOut size={16} />
             <span>Log out</span>
@@ -362,28 +361,27 @@ export default function Dashboard() {
         </div>
       </header>
 
-
-      {/* ======================================================
-          MAIN LAYOUT
-      ====================================================== */}
+      {/* MAIN LAYOUT */}
 
       <div className="content-layout">
 
-        {/* ====================================================
-            ARCHIVE
-        ==================================================== */}
+        {/* ARCHIVE */}
 
         <section className="main-column">
 
           <div className="archive-main-panel panel">
 
             <div className="archive-header">
+
               <div>
                 <div className="section-kicker">
                   YOUR COLLECTION
                 </div>
 
-                <h1>your archive</h1>
+                <h1>
+                  watching something new,{" "}
+                  {profile?.nickname || "there"}?
+                </h1>
 
                 <p className="archive-subtitle">
                   Everything you’ve watched, kept in
@@ -400,12 +398,10 @@ export default function Dashboard() {
                     : "watches"}
                 </span>
               </div>
+
             </div>
 
-
-            {/* =================================================
-                SEARCH + SORT
-            ================================================= */}
+            {/* SEARCH + SORT */}
 
             <div className="archive-tools">
 
@@ -461,16 +457,14 @@ export default function Dashboard() {
                   setSearch("");
                   setSort("newest");
                 }}
+                type="button"
               >
                 Reset
               </button>
 
             </div>
 
-
-            {/* =================================================
-                CATEGORIES
-            ================================================= */}
+            {/* CATEGORIES */}
 
             <div className="category-section">
 
@@ -498,6 +492,7 @@ export default function Dashboard() {
                     onClick={() =>
                       setCategory(key)
                     }
+                    type="button"
                   >
                     {label}
                   </button>
@@ -507,10 +502,7 @@ export default function Dashboard() {
 
             </div>
 
-
-            {/* =================================================
-                RESULTS
-            ================================================= */}
+            {/* RESULTS */}
 
             <div className="archive-results-header">
               <span>
@@ -524,12 +516,8 @@ export default function Dashboard() {
             <div className="archive-grid">
 
               {filtered.length === 0 ? (
-                <div
-                  className="empty archive-empty"
-                  style={{
-                    gridColumn: "1 / -1",
-                  }}
-                >
+                <div className="empty archive-empty">
+
                   <div className="empty-icon">
                     <Film size={21} />
                   </div>
@@ -544,17 +532,6 @@ export default function Dashboard() {
                     filling it.
                   </span>
 
-                  <button
-                    className="btn"
-                    onClick={() => {
-                      setEditing(null);
-                      setError("");
-                      setModal(true);
-                    }}
-                  >
-                    <Plus size={15} />
-                    Add your first archive
-                  </button>
                 </div>
               ) : (
                 filtered.map((a) => (
@@ -578,6 +555,9 @@ export default function Dashboard() {
                       deleteArchive(a.id)
                     }
                     onEpisodesChange={load}
+                    onOpenDetails={() =>
+                      setDetailsArchive(a)
+                    }
                   />
                 ))
               )}
@@ -588,10 +568,7 @@ export default function Dashboard() {
 
         </section>
 
-
-        {/* ====================================================
-            PROFILE
-        ==================================================== */}
+        {/* PROFILE */}
 
         <aside className="profile-column">
 
@@ -602,6 +579,7 @@ export default function Dashboard() {
             </div>
 
             <div className="profile-cover">
+
               {profile?.background_url ? (
                 <img
                   src={profile.background_url}
@@ -612,6 +590,7 @@ export default function Dashboard() {
                   <Sparkles size={22} />
                 </div>
               )}
+
             </div>
 
             <div className="profile-head">
@@ -673,6 +652,7 @@ export default function Dashboard() {
                 onClick={() =>
                   setProfileModal(true)
                 }
+                type="button"
               >
                 <Pencil size={14} />
                 Edit profile
@@ -682,10 +662,7 @@ export default function Dashboard() {
 
           </div>
 
-
-          {/* =================================================
-              PROFILE STATS
-          ================================================= */}
+          {/* PROFILE STATS */}
 
           <div className="profile-stats panel">
 
@@ -694,12 +671,10 @@ export default function Dashboard() {
                 {
                   archives.filter(
                     (a) =>
-                      a.content_type ===
-                      "movie"
+                      a.content_type === "movie"
                   ).length
                 }
               </strong>
-
               <span>movies</span>
             </div>
 
@@ -710,12 +685,10 @@ export default function Dashboard() {
                 {
                   archives.filter(
                     (a) =>
-                      a.content_type ===
-                      "series"
+                      a.content_type === "series"
                   ).length
                 }
               </strong>
-
               <span>series</span>
             </div>
 
@@ -726,12 +699,10 @@ export default function Dashboard() {
                 {
                   archives.filter(
                     (a) =>
-                      a.content_type ===
-                      "anime"
+                      a.content_type === "anime"
                   ).length
                 }
               </strong>
-
               <span>anime</span>
             </div>
 
@@ -745,7 +716,6 @@ export default function Dashboard() {
                   ).length
                 }
               </strong>
-
               <span>favorites</span>
             </div>
 
@@ -755,10 +725,7 @@ export default function Dashboard() {
 
       </div>
 
-
-      {/* ======================================================
-          ARCHIVE MODAL
-      ====================================================== */}
+      {/* ARCHIVE MODAL */}
 
       {modal && (
         <ArchiveModal
@@ -771,10 +738,7 @@ export default function Dashboard() {
         />
       )}
 
-
-      {/* ======================================================
-          PROFILE MODAL
-      ====================================================== */}
+      {/* PROFILE MODAL */}
 
       {profileModal && profile && (
         <ProfileModal
@@ -785,10 +749,43 @@ export default function Dashboard() {
         />
       )}
 
+      {detailsArchive && (
+        <ArchiveDetailsModal
+          archive={detailsArchive}
+          episodes={episodes.filter(
+            (e) => e.archive_id === detailsArchive.id
+          )}
+          supabase={supabase}
+          onClose={() => setDetailsArchive(null)}
+          onEdit={() => {
+            setDetailsArchive(null);
+            setEditing(detailsArchive);
+            setError("");
+            setModal(true);
+          }}
+          onEpisodesChange={load}
+        />
+      )}
+
     </main>
   );
 }
 
+function formatArchiveType(type: string) {
+  const labels: Record<string, string> = {
+    movie: "Movie",
+    series: "Series",
+    tv_special: "TV Special",
+    standalone_ova: "Standalone OVA",
+    ova_series: "OVA Series",
+    anime: "Anime",
+    short_film: "Short Film",
+    reality_show: "Reality Show",
+    documentary: "Documentary",
+  };
+
+  return labels[type] || type;
+}
 
 /* ============================================================
    ARCHIVE CARD
@@ -802,6 +799,7 @@ function ArchiveCard({
   onEdit,
   onDelete,
   onEpisodesChange,
+  onOpenDetails,
 }: {
   archive: Archive;
   episodes: Episode[];
@@ -810,14 +808,14 @@ function ArchiveCard({
   onEdit: () => void;
   onDelete: () => void;
   onEpisodesChange: () => void;
+  onOpenDetails: () => void;
 }) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
   const isEpisodic =
     archive.content_type === "series" ||
+    archive.content_type === "ova_series" ||
     archive.content_type === "anime" ||
-    archive.content_type === "documentary" ||
-    archive.content_type === "tvseries";
+    archive.content_type === "reality_show" ||
+    archive.content_type === "documentary";
 
   const typeIcon =
     archive.content_type === "movie" ? (
@@ -860,33 +858,102 @@ function ArchiveCard({
     <>
       <article
         className="archive-card"
-        onClick={() => setDetailsOpen(true)}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) auto",
-          gap: "18px",
-          alignItems: "center",
-          cursor: "pointer",
-        }}
+        onClick={onOpenDetails}
       >
-        <div style={{ minWidth: 0 }}>
+
+        <div className="archive-card-poster">
+
+          {archive.poster_url ? (
+            <img
+              src={archive.poster_url}
+              alt={`${archive.title} poster`}
+            />
+          ) : (
+            <div className="archive-card-poster-placeholder">
+              <Film size={25} />
+            </div>
+          )}
+
+        </div>
+
+        <div className="archive-card-content">
+
           <div className="archive-card-top">
+
             <div className="archive-type">
               {typeIcon}
-              <span>{archive.content_type}</span>
+
+              <span>
+                {formatArchiveType(
+                  archive.content_type
+                )}
+              </span>
+
               {isEpisodic && (
                 <>
-                  <span className="archive-format-divider">·</span>
+                  <span className="archive-format-divider">
+                    ·
+                  </span>
+
                   <span>
-                    {episodes.length} {episodes.length === 1 ? "episode" : "episodes"}
+                    {episodes.length}{" "}
+                    {episodes.length === 1
+                      ? "episode"
+                      : "episodes"}
                   </span>
                 </>
               )}
             </div>
 
-            <button
+          </div>
+
+          <div className="archive-title">
+            {archive.title}
+          </div>
+
+          <div className="archive-card-info">
+
+            <span>{watchDate}</span>
+
+            {archive.duration_minutes ? (
+              <>
+                <span className="info-dot">
+                  ·
+                </span>
+
+                <span>
+                  {archive.duration_minutes} min
+                </span>
+              </>
+            ) : null}
+
+          </div>
+
+          <div className="archive-rating">
+
+            <span className="stars">
+              {"★".repeat(rating)}
+              {"☆".repeat(5 - rating)}
+            </span>
+
+            <span className="rating-number">
+              {archive.rating ?? "—"}/5
+            </span>
+
+          </div>
+
+        </div>
+
+        <div
+          className="archive-card-actions"
+          onClick={stopClick}
+        >
+
+                      <button
               className={`favorite-button ${
-                archive.favorite ? "is-favorite" : ""
+                archive.favorite
+                  ? "is-favorite"
+                  : ""
               }`}
               onClick={(e) => {
                 stopClick(e);
@@ -905,54 +972,8 @@ function ArchiveCard({
                 }
               />
             </button>
-          </div>
 
-          <div className="archive-title">
-            {archive.title}
-          </div>
-
-          <div className="archive-card-info">
-            <span>{watchDate}</span>
-
-            {archive.duration_minutes ? (
-              <>
-                <span className="info-dot">·</span>
-                <span>{archive.duration_minutes} min</span>
-              </>
-            ) : null}
-          </div>
-
-          <div className="archive-rating">
-            <span className="stars">
-              {"★".repeat(rating)}
-              {"☆".repeat(5 - rating)}
-            </span>
-
-            <span className="rating-number">
-              {archive.rating ?? "—"}/5
-            </span>
-          </div>
-        </div>
-
-        <div
-          className="archive-card-actions"
-          onClick={stopClick}
-          style={{
-            alignSelf: "stretch",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <button
-            className="card-action edit-action"
-            onClick={onEdit}
-            type="button"
-          >
-            <Pencil size={13} />
-            Edit
-          </button>
-
-          <button
+                      <button
             className="card-action delete-action"
             onClick={onDelete}
             title="Delete archive"
@@ -960,153 +981,19 @@ function ArchiveCard({
           >
             <Trash2 size={14} />
           </button>
+
+          <button
+            className="card-action edit-action"
+            onClick={onEdit}
+            type="button"
+          >
+            <Pencil size={13} />
+          </button>
+
         </div>
+
       </article>
 
-      {detailsOpen && (
-        <div
-          className="modal-backdrop"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              setDetailsOpen(false);
-            }
-          }}
-        >
-          <div
-            className="modal archive-modal"
-            onMouseDown={stopClick}
-          >
-            <div className="modal-header">
-              <div>
-                <div className="modal-kicker">
-                  YOUR ARCHIVE
-                </div>
-
-                <h2>{archive.title}</h2>
-              </div>
-
-              <button
-                className="modal-close"
-                onClick={() => setDetailsOpen(false)}
-                type="button"
-                aria-label="Close"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="form-grid">
-              <div className="field">
-                <label>Type</label>
-                <div className="small muted">
-                  {typeIcon} {archive.content_type}
-                </div>
-              </div>
-
-              <div className="field">
-                <label>Rating</label>
-                <div className="archive-rating">
-                  <span className="stars">
-                    {"★".repeat(rating)}
-                    {"☆".repeat(5 - rating)}
-                  </span>
-                  <span className="rating-number">
-                    {archive.rating ?? "—"}/5
-                  </span>
-                </div>
-              </div>
-
-              <div className="field">
-                <label>Date watched</label>
-                <div className="small muted">
-                  {watchDate}
-                </div>
-              </div>
-
-              <div className="field">
-                <label>Date finished</label>
-                <div className="small muted">
-                  {finishedDate}
-                </div>
-              </div>
-
-              {archive.duration_minutes ? (
-                <div className="field">
-                  <label>Duration</label>
-                  <div className="small muted">
-                    {archive.duration_minutes} minutes
-                  </div>
-                </div>
-              ) : null}
-
-              {archive.actors.length > 0 && (
-                <div className="field full">
-                  <label>Actors / cast</label>
-                  <div className="small muted">
-                    {archive.actors.join(", ")}
-                  </div>
-                </div>
-              )}
-
-              {archive.review_notes && (
-                <div className="field full">
-                  <label>Review / notes</label>
-                  <div className="small muted">
-                    {archive.review_notes}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {isEpisodic && (
-              <div className="episodic-info-box">
-                <Layers size={17} />
-                <div>
-                  <strong>Episodes</strong>
-                  <span>
-                    {episodes.length === 0
-                      ? "No episodes added yet."
-                      : `${episodes.length} ${episodes.length === 1 ? "episode" : "episodes"} in this archive.`}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <div className="form-actions">
-              <button
-                type="button"
-                className="btn secondary"
-                onClick={() => setDetailsOpen(false)}
-              >
-                Close
-              </button>
-
-              <button
-                type="button"
-                className="btn"
-                onClick={() => {
-                  setDetailsOpen(false);
-                  onEdit();
-                }}
-              >
-                <Pencil size={14} />
-                Edit archive
-              </button>
-            </div>
-
-            {isEpisodic && (
-              <div className="archive-episodes">
-                <EpisodeManager
-                  archive={archive}
-                  episodes={episodes}
-                  supabase={supabase}
-                  onChange={onEpisodesChange}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
@@ -1140,25 +1027,16 @@ function EpisodeManager({
     );
 
   const [title, setTitle] = useState("");
-
-  const [rating, setRating] =
-    useState("");
-
-  const [notes, setNotes] =
-    useState("");
-
-  const [saving, setSaving] =
-    useState(false);
-
+  const [rating, setRating] = useState("");
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
   const [editingEpisode, setEditingEpisode] =
     useState<string | null>(null);
 
   function startEdit(episode: Episode) {
     setEditingEpisode(episode.id);
 
-    setTitle(
-      episode.title || ""
-    );
+    setTitle(episode.title || "");
 
     setRating(
       episode.rating !== null
@@ -1166,9 +1044,7 @@ function EpisodeManager({
         : ""
     );
 
-    setNotes(
-      episode.notes || ""
-    );
+    setNotes(episode.notes || "");
 
     setEpisodeNumber(
       episode.episode_number
@@ -1225,12 +1101,10 @@ function EpisodeManager({
 
     const payload = {
       archive_id: archive.id,
-      episode_number:
-        Number(episodeNumber),
+      episode_number: Number(episodeNumber),
       title: title.trim(),
       rating: numericRating,
-      notes:
-        notes.trim() || null,
+      notes: notes.trim() || null,
     };
 
     let result;
@@ -1269,14 +1143,8 @@ function EpisodeManager({
     setSaving(false);
   }
 
-  async function deleteEpisode(
-    id: string
-  ) {
-    if (
-      !confirm(
-        "Delete this episode?"
-      )
-    ) {
+  async function deleteEpisode(id: string) {
+    if (!confirm("Delete this episode?")) {
       return;
     }
 
@@ -1304,9 +1172,7 @@ function EpisodeManager({
 
             const episodeRating =
               episode.rating
-                ? Math.round(
-                    episode.rating
-                  )
+                ? Math.round(episode.rating)
                 : 0;
 
             return (
@@ -1316,8 +1182,7 @@ function EpisodeManager({
               >
 
                 <div className="episode-number">
-                  EP.{" "}
-                  {episode.episode_number}
+                  EP. {episode.episode_number}
                 </div>
 
                 <div className="episode-details">
@@ -1333,23 +1198,19 @@ function EpisodeManager({
                       {"★".repeat(
                         episodeRating
                       )}
-
                       {"☆".repeat(
                         5 - episodeRating
                       )}
                     </span>
 
                     <span>
-                      {episode.rating ??
-                        "—"}/5
+                      {episode.rating ?? "—"}/5
                     </span>
 
                   </div>
 
                   {episode.notes && (
-                    <p>
-                      {episode.notes}
-                    </p>
+                    <p>{episode.notes}</p>
                   )}
 
                 </div>
@@ -1359,11 +1220,10 @@ function EpisodeManager({
                   <button
                     className="link"
                     onClick={() =>
-                      startEdit(
-                        episode
-                      )
+                      startEdit(episode)
                     }
                     title="Edit episode"
+                    type="button"
                   >
                     <Pencil size={14} />
                   </button>
@@ -1371,11 +1231,10 @@ function EpisodeManager({
                   <button
                     className="link"
                     onClick={() =>
-                      deleteEpisode(
-                        episode.id
-                      )
+                      deleteEpisode(episode.id)
                     }
                     title="Delete episode"
+                    type="button"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -1389,13 +1248,11 @@ function EpisodeManager({
         </div>
       )}
 
-
       {!adding ? (
         <button
           className="episode-add-button"
-          onClick={() =>
-            setAdding(true)
-          }
+          onClick={() => setAdding(true)}
+          type="button"
         >
           <Plus size={14} />
           Add episode
@@ -1424,14 +1281,10 @@ function EpisodeManager({
 
           </div>
 
-
           <div className="episode-form-grid">
 
             <div className="field">
-
-              <label>
-                Episode #
-              </label>
+              <label>Episode #</label>
 
               <input
                 type="number"
@@ -1439,41 +1292,27 @@ function EpisodeManager({
                 value={episodeNumber}
                 onChange={(e) =>
                   setEpisodeNumber(
-                    Number(
-                      e.target.value
-                    )
+                    Number(e.target.value)
                   )
                 }
               />
-
             </div>
 
-
             <div className="field">
-
-              <label>
-                Episode name
-              </label>
+              <label>Episode name</label>
 
               <input
                 required
                 value={title}
                 onChange={(e) =>
-                  setTitle(
-                    e.target.value
-                  )
+                  setTitle(e.target.value)
                 }
                 placeholder="Episode title"
               />
-
             </div>
 
-
             <div className="field">
-
-              <label>
-                Rating / 5
-              </label>
+              <label>Rating / 5</label>
 
               <input
                 type="number"
@@ -1482,37 +1321,26 @@ function EpisodeManager({
                 step="0.5"
                 value={rating}
                 onChange={(e) =>
-                  setRating(
-                    e.target.value
-                  )
+                  setRating(e.target.value)
                 }
                 placeholder="0–5"
               />
-
             </div>
 
-
             <div className="field full">
-
-              <label>
-                Episode notes
-              </label>
+              <label>Episode notes</label>
 
               <textarea
                 rows={3}
                 value={notes}
                 onChange={(e) =>
-                  setNotes(
-                    e.target.value
-                  )
+                  setNotes(e.target.value)
                 }
                 placeholder="What happened? What did you think?"
               />
-
             </div>
 
           </div>
-
 
           <div className="episode-form-actions">
 
@@ -1544,10 +1372,221 @@ function EpisodeManager({
   );
 }
 
-
 /* ============================================================
    ARCHIVE MODAL
 ============================================================ */
+
+function ArchiveDetailsModal({
+  archive,
+  episodes,
+  supabase,
+  onClose,
+  onEdit,
+  onEpisodesChange,
+}: {
+  archive: Archive;
+  episodes: Episode[];
+  supabase: any;
+  onClose: () => void;
+  onEdit: () => void;
+  onEpisodesChange: () => void;
+}) {
+  const isEpisodic =
+    archive.content_type === "series" ||
+    archive.content_type === "ova_series" ||
+    archive.content_type === "anime" ||
+    archive.content_type === "reality_show" ||
+    archive.content_type === "documentary";
+
+  const typeIcon =
+    archive.content_type === "movie" ? (
+      <Film size={13} />
+    ) : archive.content_type === "series" ? (
+      <Tv size={13} />
+    ) : (
+      <Sparkles size={13} />
+    );
+
+  const rating = archive.rating
+    ? Math.round(archive.rating)
+    : 0;
+
+  const watchDate = archive.date_watched
+    ? new Date(
+        archive.date_watched
+      ).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "No watch date";
+
+  const finishedDate = archive.date_finished
+    ? new Date(
+        archive.date_finished
+      ).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "Not recorded";
+
+  function stopClick(e: React.MouseEvent) {
+    e.stopPropagation();
+  }
+
+  return (
+    <div
+      className="modal-backdrop"
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div
+        className="modal archive-modal archive-detail-modal"
+        onMouseDown={stopClick}
+      >
+        <div className="modal-header">
+          <div>
+            <div className="modal-kicker">YOUR ARCHIVE</div>
+            <h2>{archive.title}</h2>
+          </div>
+
+          <button
+            className="modal-close"
+            onClick={onClose}
+            type="button"
+            aria-label="Close"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {archive.poster_url && (
+          <div className="archive-detail-poster">
+            <img
+              src={archive.poster_url}
+              alt={`${archive.title} poster`}
+            />
+          </div>
+        )}
+
+        <div className="form-grid">
+          <div className="field">
+            <label>Type</label>
+            <div className="detail-value">
+              {typeIcon}
+              {formatArchiveType(archive.content_type)}
+            </div>
+          </div>
+
+          <div className="field">
+            <label>Rating</label>
+            <div className="archive-rating">
+              <span className="stars">
+                {"★".repeat(rating)}
+                {"☆".repeat(5 - rating)}
+              </span>
+              <span className="rating-number">
+                {archive.rating ?? "—"}/5
+              </span>
+            </div>
+          </div>
+
+          <div className="field">
+            <label>Date watched</label>
+            <div className="detail-value">{watchDate}</div>
+          </div>
+
+          <div className="field">
+            <label>Date finished</label>
+            <div className="detail-value">{finishedDate}</div>
+          </div>
+
+          {archive.duration_minutes ? (
+            <div className="field">
+              <label>Duration</label>
+              <div className="detail-value">
+                {archive.duration_minutes} minutes
+              </div>
+            </div>
+          ) : null}
+
+          {archive.actors.length > 0 && (
+            <div className="field full">
+              <label>Actors / cast</label>
+              <div className="detail-value">
+                {archive.actors.join(", ")}
+              </div>
+            </div>
+          )}
+
+          {archive.review_notes && (
+            <div className="field full">
+              <label>Review / notes</label>
+              <div className="detail-notes">
+                {archive.review_notes}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {isEpisodic && (
+          <div className="episodic-info-box">
+            <Layers size={17} />
+            <div>
+              <strong>Episodes</strong>
+              <span>
+                {episodes.length === 0
+                  ? "No episodes added yet."
+                  : `${episodes.length} ${
+                      episodes.length === 1
+                        ? "episode"
+                        : "episodes"
+                    } in this archive.`}
+              </span>
+            </div>
+          </div>
+        )}
+
+        <div className="form-actions">
+          <button
+            type="button"
+            className="btn secondary"
+            onClick={onClose}
+          >
+            Close
+          </button>
+
+          <button
+            type="button"
+            className="btn"
+            onClick={() => {
+              onClose();
+              onEdit();
+            }}
+          >
+            <Pencil size={14} />
+            Edit archive
+          </button>
+        </div>
+
+        {isEpisodic && (
+          <div className="archive-episodes">
+            <EpisodeManager
+              archive={archive}
+              episodes={episodes}
+              supabase={supabase}
+              onChange={onEpisodesChange}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function ArchiveModal({
   supabase,
@@ -1574,21 +1613,18 @@ function ArchiveModal({
 
   const viewingFormat =
     contentType === "series" ||
+    contentType === "ova_series" ||
     contentType === "anime" ||
-    contentType === "documentary" ||
-    contentType === "realityshow"
+    contentType === "reality_show" ||
+    contentType === "documentary"
       ? "episodic"
       : "standalone";
 
   const [watched, setWatched] =
-    useState(
-      existing?.date_watched || ""
-    );
+    useState(existing?.date_watched || "");
 
   const [finished, setFinished] =
-    useState(
-      existing?.date_finished || ""
-    );
+    useState(existing?.date_finished || "");
 
   const [rating, setRating] =
     useState(
@@ -1608,16 +1644,14 @@ function ArchiveModal({
     );
 
   const [notes, setNotes] =
-    useState(
-      existing?.review_notes || ""
-    );
+    useState(existing?.review_notes || "");
 
-  const [saving, setSaving] =
-    useState(false);
+  const [posterUrl, setPosterUrl] =
+    useState(existing?.poster_url || "");
 
-  async function save(
-    e: React.FormEvent
-  ) {
+  const [saving, setSaving] = useState(false);
+
+  async function save(e: React.FormEvent) {
     e.preventDefault();
 
     setSaving(true);
@@ -1637,9 +1671,7 @@ function ArchiveModal({
     }
 
     if (!title.trim()) {
-      setError(
-        "Please enter a title."
-      );
+      setError("Please enter a title.");
 
       setSaving(false);
       return;
@@ -1665,36 +1697,23 @@ function ArchiveModal({
 
     const payload = {
       user_id: user.id,
-
       title: title.trim(),
-
-      content_type:
-        contentType,
-
-      viewing_format:
-        viewingFormat,
-
-      date_watched:
-        watched || null,
-
-      date_finished:
-        finished || null,
-
-      rating:
-        numericRating,
-
-      duration_minutes:
-        duration
-          ? Number(duration)
-          : null,
-
+      content_type: contentType,
+      viewing_format: viewingFormat,
+      date_watched: watched || null,
+      date_finished: finished || null,
+      rating: numericRating,
+      duration_minutes: duration
+        ? Number(duration)
+        : null,
       actors: actors
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean),
-
       review_notes:
         notes.trim() || null,
+      poster_url:
+        posterUrl.trim() || null,
     };
 
     let result;
@@ -1707,10 +1726,6 @@ function ArchiveModal({
         .select()
         .single();
 
-      /*
-       * If the archive was changed from episodic
-       * to standalone, remove its episodes.
-       */
       if (
         !result.error &&
         viewingFormat === "standalone"
@@ -1718,10 +1733,7 @@ function ArchiveModal({
         await supabase
           .from("archive_episodes")
           .delete()
-          .eq(
-            "archive_id",
-            existing.id
-          );
+          .eq("archive_id", existing.id);
       }
     } else {
       result = await supabase
@@ -1732,10 +1744,7 @@ function ArchiveModal({
     }
 
     if (result.error) {
-      setError(
-        result.error.message
-      );
-
+      setError(result.error.message);
       setSaving(false);
       return;
     }
@@ -1755,7 +1764,6 @@ function ArchiveModal({
         <div className="modal-header">
 
           <div>
-
             <div className="modal-kicker">
               {existing
                 ? "EDIT YOUR ARCHIVE"
@@ -1767,7 +1775,6 @@ function ArchiveModal({
                 ? "edit archive"
                 : "add new archive"}
             </h2>
-
           </div>
 
           <button
@@ -1780,47 +1787,30 @@ function ArchiveModal({
 
         </div>
 
-
         <form onSubmit={save}>
 
           <div className="form-grid">
 
-            {/* TITLE */}
-
             <div className="field full">
-
-              <label>
-                Title
-              </label>
+              <label>Title</label>
 
               <input
                 required
                 value={title}
                 onChange={(e) =>
-                  setTitle(
-                    e.target.value
-                  )
+                  setTitle(e.target.value)
                 }
                 placeholder="What did you watch?"
               />
-
             </div>
 
-
-            {/* TYPE */}
-
             <div className="field">
-
-              <label>
-                Type
-              </label>
+              <label>Type</label>
 
               <select
                 value={contentType}
                 onChange={(e) =>
-                  setContentType(
-                    e.target.value
-                  )
+                  setContentType(e.target.value)
                 }
               >
                 {types.map((type) => (
@@ -1829,89 +1819,63 @@ function ArchiveModal({
                     value={type}
                   >
                     {type === "movie"
-                      ? "Movie"
+                      ? "Movie (standalone)"
                       : type === "series"
-                      ? "Series"
+                      ? "Series (ep)"
+                      : type === "tv_special"
+                      ? "TV Special (standalone)"
+                      : type === "standalone_ova"
+                      ? "Standalone OVA (standalone)"
+                      : type === "ova_series"
+                      ? "OVA Series (ep)"
                       : type === "anime"
-                      ? "Anime"
-                      : type === "documentary"
-                      ? "Documentary"
-                      : type === "shortfilm"
-                      ? "Short Film"
-                      : "Other"}
+                      ? "Anime (episode)"
+                      : type === "short_film"
+                      ? "Short Film (standalone)"
+                      : type === "reality_show"
+                      ? "Reality Show (ep)"
+                      : "Documentary (ep)"}
                   </option>
                 ))}
               </select>
-
             </div>
 
-
-            {/* FORMAT IS DETERMINED BY TYPE */}
-
             <div className="field">
+              <label>Viewing</label>
 
-              <label>
-                Viewing
-              </label>
-
-              <div className="small muted">
+              <div className="detail-value form-description">
                 {viewingFormat === "episodic"
                   ? "Episodes can be tracked for this type."
                   : "This watch is treated as one complete item."}
               </div>
-
             </div>
 
-
-            {/* WATCH DATE */}
-
             <div className="field">
-
-              <label>
-                Date watched
-              </label>
+              <label>Date watched</label>
 
               <input
                 type="date"
                 value={watched}
                 onChange={(e) =>
-                  setWatched(
-                    e.target.value
-                  )
+                  setWatched(e.target.value)
                 }
               />
-
             </div>
 
-
-            {/* FINISHED */}
-
             <div className="field">
-
-              <label>
-                Date finished
-              </label>
+              <label>Date finished</label>
 
               <input
                 type="date"
                 value={finished}
                 onChange={(e) =>
-                  setFinished(
-                    e.target.value
-                  )
+                  setFinished(e.target.value)
                 }
               />
-
             </div>
 
-
-            {/* RATING */}
-
             <div className="field">
-
-              <label>
-                Overall rating
-              </label>
+              <label>Overall rating</label>
 
               <input
                 type="number"
@@ -1920,123 +1884,106 @@ function ArchiveModal({
                 step="0.5"
                 value={rating}
                 onChange={(e) =>
-                  setRating(
-                    e.target.value
-                  )
+                  setRating(e.target.value)
                 }
                 placeholder="0–5"
               />
-
             </div>
 
-
-            {/* DURATION */}
-
             <div className="field">
-
-              <label>
-                Duration
-              </label>
+              <label>Duration</label>
 
               <input
                 type="number"
                 min="0"
                 value={duration}
                 onChange={(e) =>
-                  setDuration(
-                    e.target.value
-                  )
+                  setDuration(e.target.value)
                 }
                 placeholder="Minutes"
               />
-
             </div>
 
+            <div className="field full">
+              <label>Poster picture URL</label>
 
-            {/* CAST */}
+              <input
+                type="url"
+                value={posterUrl}
+                onChange={(e) =>
+                  setPosterUrl(e.target.value)
+                }
+                placeholder="https://... poster image"
+              />
+
+              <span className="small muted">
+                Optional. Add an image URL to display
+                a poster on your archive card.
+              </span>
+
+              {posterUrl.trim() && (
+                <div className="poster-preview">
+                  <img
+                    src={posterUrl}
+                    alt="Poster preview"
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="field full">
-
-              <label>
-                Actors / cast
-              </label>
+              <label>Actors / cast</label>
 
               <input
                 value={actors}
                 onChange={(e) =>
-                  setActors(
-                    e.target.value
-                  )
+                  setActors(e.target.value)
                 }
                 placeholder="Actor 1, Actor 2, Actor 3"
               />
-
             </div>
 
-
-            {/* NOTES */}
-
             <div className="field full">
-
-              <label>
-                Review / notes
-              </label>
+              <label>Review / notes</label>
 
               <textarea
                 rows={5}
                 value={notes}
                 onChange={(e) =>
-                  setNotes(
-                    e.target.value
-                  )
+                  setNotes(e.target.value)
                 }
                 placeholder="What do you want to remember about it?"
               />
-
             </div>
 
           </div>
 
-
-          {/* =================================================
-              EPISODIC EXPLANATION
-          ================================================= */}
-
-          {viewingFormat ===
-            "episodic" && (
+          {viewingFormat === "episodic" && (
             <div className="episodic-info-box">
 
               <Layers size={17} />
 
               <div>
-
                 <strong>
                   This is an episodic archive
                 </strong>
 
                 <span>
-                  Save this archive first,
-                  then use its Episodes
-                  section to add individual
-                  episode names, ratings,
+                  Save this archive first, then use
+                  its Episodes section to add
+                  individual episode names, ratings,
                   and notes.
                 </span>
-
               </div>
 
             </div>
           )}
 
-
           {error && (
-            <div
-              className="error"
-              role="alert"
-            >
+            <div className="error" role="alert">
               {error}
             </div>
           )}
-
 
           <div className="form-actions">
 
@@ -2069,7 +2016,6 @@ function ArchiveModal({
   );
 }
 
-
 /* ============================================================
    PROFILE MODAL
 ============================================================ */
@@ -2086,47 +2032,32 @@ function ProfileModal({
   refresh: () => void;
 }) {
   const [nickname, setNickname] =
-    useState(
-      profile.nickname || ""
-    );
+    useState(profile.nickname || "");
 
   const [username, setUsername] =
-    useState(
-      profile.username || ""
-    );
+    useState(profile.username || "");
 
   const [pronouns, setPronouns] =
-    useState(
-      profile.pronouns || ""
-    );
+    useState(profile.pronouns || "");
 
   const [bio, setBio] =
     useState(profile.bio || "");
 
   const [avatar, setAvatar] =
-    useState(
-      profile.avatar_url || ""
-    );
+    useState(profile.avatar_url || "");
 
   const [background, setBackground] =
-    useState(
-      profile.background_url || ""
-    );
+    useState(profile.background_url || "");
 
   const [tags, setTags] =
     useState(
       (profile.tags || []).join(", ")
     );
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
 
-  const [saving, setSaving] =
-    useState(false);
-
-  async function save(
-    e: React.FormEvent
-  ) {
+  async function save(e: React.FormEvent) {
     e.preventDefault();
 
     setError("");
@@ -2152,31 +2083,18 @@ function ProfileModal({
       await supabase
         .from("profiles")
         .update({
-          nickname:
-            nickname.trim(),
-
-          username:
-            cleanUsername,
-
+          nickname: nickname.trim(),
+          username: cleanUsername,
           pronouns:
-            pronouns.trim() ||
-            null,
-
-          bio:
-            bio.trim() || null,
-
+            pronouns.trim() || null,
+          bio: bio.trim() || null,
           avatar_url:
             avatar.trim() || null,
-
           background_url:
-            background.trim() ||
-            null,
-
+            background.trim() || null,
           tags: tags
             .split(",")
-            .map((s) =>
-              s.trim()
-            )
+            .map((s) => s.trim())
             .filter(Boolean),
         })
         .eq("id", profile.id);
@@ -2207,15 +2125,11 @@ function ProfileModal({
         <div className="modal-header">
 
           <div>
-
             <div className="modal-kicker">
               YOUR LITTLE SPACE
             </div>
 
-            <h2>
-              edit profile
-            </h2>
-
+            <h2>edit profile</h2>
           </div>
 
           <button
@@ -2228,89 +2142,59 @@ function ProfileModal({
 
         </div>
 
-
         <form onSubmit={save}>
 
           <div className="form-grid">
 
             <div className="field">
-
-              <label>
-                Nickname
-              </label>
+              <label>Nickname</label>
 
               <input
                 value={nickname}
                 onChange={(e) =>
-                  setNickname(
-                    e.target.value
-                  )
+                  setNickname(e.target.value)
                 }
                 placeholder="Your name"
               />
-
             </div>
 
-
             <div className="field">
-
-              <label>
-                Username
-              </label>
+              <label>Username</label>
 
               <input
                 value={username}
                 onChange={(e) =>
-                  setUsername(
-                    e.target.value
-                  )
+                  setUsername(e.target.value)
                 }
                 placeholder="your_username"
               />
-
             </div>
 
-
             <div className="field">
-
-              <label>
-                Pronouns
-              </label>
+              <label>Pronouns</label>
 
               <input
                 value={pronouns}
                 onChange={(e) =>
-                  setPronouns(
-                    e.target.value
-                  )
+                  setPronouns(e.target.value)
                 }
                 placeholder="she/her, they/them..."
               />
-
             </div>
 
-
             <div className="field">
-
-              <label>
-                Profile picture URL
-              </label>
+              <label>Profile picture URL</label>
 
               <input
                 value={avatar}
                 onChange={(e) =>
-                  setAvatar(
-                    e.target.value
-                  )
+                  setAvatar(e.target.value)
                 }
                 placeholder="https://..."
               />
-
             </div>
 
-
             <div className="field full">
-
               <label>
                 Profile background picture URL
               </label>
@@ -2318,28 +2202,19 @@ function ProfileModal({
               <input
                 value={background}
                 onChange={(e) =>
-                  setBackground(
-                    e.target.value
-                  )
+                  setBackground(e.target.value)
                 }
                 placeholder="https://..."
               />
-
             </div>
 
-
             <div className="field full">
-
-              <label>
-                Tags
-              </label>
+              <label>Tags</label>
 
               <input
                 value={tags}
                 onChange={(e) =>
-                  setTags(
-                    e.target.value
-                  )
+                  setTags(e.target.value)
                 }
                 placeholder="cinephile, comfort movies, animation"
               />
@@ -2347,41 +2222,28 @@ function ProfileModal({
               <span className="small muted">
                 Separate tags with commas.
               </span>
-
             </div>
 
-
             <div className="field full">
-
-              <label>
-                Bio
-              </label>
+              <label>Bio</label>
 
               <textarea
                 rows={4}
                 value={bio}
                 onChange={(e) =>
-                  setBio(
-                    e.target.value
-                  )
+                  setBio(e.target.value)
                 }
                 placeholder="Tell us a little about your watching life..."
               />
-
             </div>
 
           </div>
 
-
           {error && (
-            <div
-              className="error"
-              role="alert"
-            >
+            <div className="error" role="alert">
               {error}
             </div>
           )}
-
 
           <div className="form-actions">
 
